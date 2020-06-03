@@ -31,6 +31,20 @@ jobs:
           command: npm test
           working_directory: ./client
   
+  docker-publish:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          command: |
+            echo "$DOCKER_PASS" | docker login -u "jszandula" --password-stdin
+            sudo docker build ./server -t jszandula/server
+            sudo docker push jszandula/server
+      - run:
+          command: |
+            echo "$DOCKER_PASS" | docker login -u "jszandula" --password-stdin
+            sudo docker build ./client -t jszandula/client
+            sudo docker push jszandula/client
 workflows:
     build-and-test:
       jobs:
@@ -45,3 +59,7 @@ workflows:
         - react-client:
             requires:
               - build
+        - docker-publish:
+            requires:
+              - react-client
+              - node-server
